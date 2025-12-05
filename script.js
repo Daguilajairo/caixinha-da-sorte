@@ -160,28 +160,28 @@ const defaultPhrases = {
     "Uma risada muda o estado de espírito."
   ]
 };
-const categoriesList=["geral","amor","trabalho","dinheiro","humor"];
-let phrases={},favorites=[],lastResult=null;
-const uid=()=>Math.random().toString(36).slice(2,9);
 
-function loadStorage(){
-  try{
-    const custom=JSON.parse(localStorage.getItem('cs_custom_phrases')||'{}');
-    const fav=JSON.parse(localStorage.getItem('cs_favorites')||'[]');
-    phrases={...defaultPhrases};
+const categoriesList=["geral","amor","trabalho","dinheiro","humor"];
+let phrases={}, favorites=[], lastResult=null;
+const uid = () => Math.random().toString(36).slice(2,9);
+
+function loadStorage() {
+  try {
+    const custom = JSON.parse(localStorage.getItem('cs_custom_phrases')||'{}');
+    const fav = JSON.parse(localStorage.getItem('cs_favorites')||'[]');
+    phrases = {...defaultPhrases};
     for(const k in custom){ if(!phrases[k]) phrases[k]=[]; phrases[k]=phrases[k].concat(custom[k]); }
-    favorites=fav||[];
-  }catch(e){ phrases={...defaultPhrases}; favorites=[]; }
+    favorites = fav || [];
+  } catch(e) { phrases = {...defaultPhrases}; favorites = []; }
 }
-function saveCustom(custom){ localStorage.setItem('cs_custom_phrases',JSON.stringify(custom)); }
-function saveFavorites(){ localStorage.setItem('cs_favorites',JSON.stringify(favorites)); }
+function saveFavorites(){ localStorage.setItem('cs_favorites', JSON.stringify(favorites)); }
 loadStorage();
 
-const categoriesEl=document.getElementById('categories');
-const favListEl=document.getElementById('favList');
-const resultTextEl=document.getElementById('resultText');
-const resultCatEl=document.getElementById('resultCategory');
-const boxInner=document.getElementById('boxInner');
+const categoriesEl = document.getElementById('categories');
+const favListEl = document.getElementById('favList');
+const resultTextEl = document.getElementById('resultText');
+const resultCatEl = document.getElementById('resultCategory');
+const boxInner = document.getElementById('boxInner');
 
 function renderCategories(){
   categoriesEl.innerHTML='';
@@ -224,19 +224,13 @@ function pickRandomFrom(cat){
   const arr=(phrases[cat]||[]).slice();
   if(!arr.length) return null;
   const idx=Math.floor(Math.random()*arr.length);
-  return {text:arr[idx],category:cat};
+  return {text:arr[idx], category:cat};
 }
-function pickCategoryAndShow(cat){
-  const res=pickRandomFrom(cat);
-  if(!res){ resultTextEl.textContent='Sem frases nessa categoria.'; return; }
-  showResult(res);
-}
-
-async function pickAnyAndShow(){
-  const all=[];
+function pickCategoryAndShow(cat){ showResult(pickRandomFrom(cat)); }
+function pickAnyAndShow(){
+  const all=[]; 
   for(const c of categoriesList){ (phrases[c]||[]).forEach(t=>all.push({text:t,category:c})); }
   const result=all[Math.floor(Math.random()*all.length)];
-  if(!result){ resultTextEl.textContent='Sem frases disponíveis.'; return; }
   showResult(result);
 }
 
@@ -248,7 +242,8 @@ document.getElementById('addPhraseBtn').addEventListener('click',()=>{
   if(!customRaw[cat]) customRaw[cat]=[];
   customRaw[cat].push(text);
   localStorage.setItem('cs_custom_phrases',JSON.stringify(customRaw));
-  loadStorage(); renderCategories(); alert(`Frase adicionada em ${cat.charAt(0).toUpperCase()+cat.slice(1)}.`); document.getElementById('newPhrase').value='';
+  loadStorage(); renderCategories(); alert(`Frase adicionada em ${cat.charAt(0).toUpperCase()+cat.slice(1)}.`); 
+  document.getElementById('newPhrase').value='';
 });
 
 document.getElementById('favBtn').addEventListener('click',()=>{
@@ -274,15 +269,50 @@ document.getElementById('shareBtn').addEventListener('click',async()=>{
   else{ navigator.clipboard.writeText(lastResult.text); alert('Compartilhar não suportado. Texto copiado.'); }
 });
 
-renderCategories();
-renderFavs();
 document.getElementById('shakeBtn').addEventListener('click',pickAnyAndShow);
-
 document.getElementById('dailyBtn').addEventListener('click',()=>{
   const seed=(new Date()).toISOString().slice(0,10);
   const arr=phrases['geral']||[];
-  if(!arr.length) return alert('Sem frases gerais.');
   let hash=0; for(let ch of seed) hash=((hash<<5)-hash)+ch.charCodeAt(0);
   const idx=Math.abs(hash)%arr.length;
   showResult({text:arr[idx],category:'geral'});
 });
+
+// ===================
+// Assoprar / Microfone
+// ===================
+async function initBlowDetection() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const audioCtx = new AudioContext();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    source.connect(analyser);
+    const dataArray = new Uint8Array(analyser.fftSize);
+
+    function detectBlow() {
+      analyser.getByteTimeDomainData(dataArray);
+      let max = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const value = Math.abs(dataArray[i] - 128);
+        if (value > max) max = value;
+      }
+      if (max > 40) { pickAnyAndShow(); }
+      requestAnimationFrame(detectBlow);
+    }
+    detectBlow();
+  } catch (e) { console.log("Microfone não disponível:", e); }
+}
+initBlowDetection();
+
+// ===================
+// Balancear / DeviceMotion
+// ===================
+window.addEventListener("devicemotion", (event) => {
+  const acc = event.accelerationIncludingGravity;
+  const totalAcc = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+  if (totalAcc > 15) { pickAnyAndShow(); }
+});
+
+renderCategories();
+renderFavs();
