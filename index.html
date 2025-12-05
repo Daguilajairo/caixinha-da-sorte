@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Caixinha da Sorte 2.0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lottie-web@latest/build/player/lottie.min.js"></script>
+  <style>
+    .box-3d { perspective: 1000px; width: 220px; height: 220px; margin: 0 auto; position: relative; }
+    .box-inner { width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 700ms cubic-bezier(.2,.9,.2,1); }
+    .box-inner.open { transform: rotateX(-85deg) translateY(-12%); }
+    .box-face { position: absolute; width: 100%; height: 100%; border-radius: 14px; backface-visibility: hidden; display:flex;align-items:center;justify-content:center; font-weight:700;color:white;font-size:1.05rem; }
+    .box-bottom { background: linear-gradient(180deg,#7c3aed,#06b6d4); transform: translateZ(-8px); }
+    .box-top { background: linear-gradient(180deg,#f59e0b,#ef4444); transform-origin: top center; transform: translateZ(40px) rotateX(0deg); }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-slate-50 to-white min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+      <section class="bg-white shadow-2xl rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-slate-800">Caixinha da Sorte ✨</h1>
+            <p class="text-sm text-slate-500">Toque, balance, assopre ou escolha uma categoria — receba sua sorte do dia.</p>
+          </div>
+          <div class="text-right">
+            <button id="dailyBtn" class="text-xs px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">Mantra do dia</button>
+          </div>
+        </div>
+        <div class="flex flex-col items-center gap-4">
+          <div id="animWrap" class="box-3d">
+            <div id="boxInner" class="box-inner">
+              <div class="box-face box-bottom"></div>
+              <div class="box-face box-top">🍀</div>
+            </div>
+          </div>
+          <div id="cardResult" class="w-full bg-gradient-to-r from-white/60 to-white/40 border border-slate-100 rounded-2xl p-4 text-center shadow-md">
+            <div id="resultCategory" class="text-xs text-slate-400 mb-1">—</div>
+            <div id="resultText" class="text-lg font-semibold text-slate-800">Toque em “Sortear” para abrir a caixinha.</div>
+            <div id="resultMeta" class="text-xs text-slate-400 mt-2">Favorite as frases que gostar</div>
+          </div>
+          <div class="w-full grid grid-cols-2 gap-3 md:grid-cols-4">
+            <button id="shakeBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700">Sortear</button>
+            <button id="favBtn" class="px-4 py-2 border rounded-lg text-indigo-600 hover:bg-indigo-50">⭐ Favoritar</button>
+            <button id="copyBtn" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">📋 Copiar</button>
+            <button id="shareBtn" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">🔗 Compartilhar</button>
+          </div>
+          <div class="w-full mt-2">
+            <label class="text-sm text-slate-600">Categorias</label>
+            <div id="categories" class="flex flex-wrap gap-2 mt-2"></div>
+          </div>
+          <div class="w-full mt-3">
+            <label class="text-sm text-slate-600">Adicionar sua frase</label>
+            <div class="flex flex-col gap-2 mt-2">
+              <input id="newPhrase" placeholder="Escreva uma frase da sorte..." class="flex-1 p-2 border rounded-xl" />
+              <select id="newPhraseCat" class="p-2 border rounded-xl">
+                <option value="geral">Geral</option>
+                <option value="amor">Amor</option>
+                <option value="trabalho">Trabalho</option>
+                <option value="dinheiro">Dinheiro</option>
+                <option value="humor">Humor</option>
+              </select>
+              <button id="addPhraseBtn" class="px-4 py-2 bg-emerald-500 text-white rounded-xl">Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <aside class="bg-white shadow-2xl rounded-3xl p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold">Favoritos</h3>
+          <button id="clearFavs" class="text-xs text-red-500">Limpar</button>
+        </div>
+        <div id="favList" class="max-h-40 overflow-auto space-y-2"></div>
+        <hr class="my-2">
+      </aside>
+    </div>
+    <footer class="mt-8 text-center text-xs text-slate-400">
+      Desenvolvido por Jairo D'aguila · Caixinha da Sorte 2.0
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
